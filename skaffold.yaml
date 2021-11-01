@@ -1,0 +1,18 @@
+apiVersion: skaffold/v2beta25
+kind: Config
+metadata:
+  name: web-stack-starter
+build:
+  artifacts:
+  - image: ui
+    context: ui
+    docker:
+      dockerfile: Dockerfile
+deploy:
+  kubectl:
+    manifests:
+    - ui/deployment.yaml
+portForward:
+- resourceType: service
+  resourceName: ui
+  port: 3000
