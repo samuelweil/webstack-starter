@@ -12,7 +12,11 @@ deploy:
   kubectl:
     manifests:
     - ui/deployment.yaml
+    - db/deployment.yaml
 portForward:
 - resourceType: service
   resourceName: ui
   port: 3000
+- resourceType: service
+  resourceName: db
+  port: 5432

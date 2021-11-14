@@ -6,11 +6,11 @@ metadata:
     app: db
 spec:
   ports:
-  - port: 5432
-    protocol: TCP
+    - port: 5432
+      protocol: TCP
   clusterIP: None
-  selector: 
-    app: ui
+  selector:
+    app: db
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18,16 +18,23 @@ metadata:
   name: db
   labels:
     app: db
-spec: 
+spec:
   replicas: 1
   selector:
     matchLabels:
       app: db
   template:
-    metdata:
+    metadata:
       labels:
         app: db
     spec:
       containers:
-      - name: db
-        image: postgres:14-alpine
+        - name: db
+          image: postgres:14
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          ports:
+            - containerPort: 5432
