@@ -4,7 +4,7 @@ FROM ${base_img} as builder
 
 WORKDIR /build
 
-COPY go.* .
+COPY go.* ./
 COPY cmd cmd
 
 RUN go build cmd/*
@@ -15,4 +15,6 @@ WORKDIR /app
 
 COPY --from=builder /build/api .
 
-CMD ["api"]
+EXPOSE 8080
+
+CMD ["./api"]
