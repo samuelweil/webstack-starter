@@ -8,11 +8,16 @@ build:
     context: ui
     docker:
       dockerfile: Dockerfile
+  - image: api
+    context: api
+    docker:
+      dockerfile: build/Dockerfile
 deploy:
   kubectl:
     manifests:
     - ui/deployment.yaml
     - db/deployment.yaml
+    - api/deployments/deployment.yaml
 portForward:
 - resourceType: service
   resourceName: ui
@@ -20,3 +25,6 @@ portForward:
 - resourceType: service
   resourceName: db
   port: 5432
+- resourceType: service
+  resourceName: api
+  port: 8080
