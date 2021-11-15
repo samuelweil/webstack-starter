@@ -18,6 +18,13 @@ deploy:
     - ui/deployment.yaml
     - db/deployment.yaml
     - api/deployments/deployment.yaml
+  helm:
+    releases:
+    - name: ingress
+      remoteChart: ingress-nginx
+      repo: https://kubernetes.github.io/ingress-nginx
+      namespace: ingress
+      createNamespace: true
 portForward:
 - resourceType: service
   resourceName: ui
