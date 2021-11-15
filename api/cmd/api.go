@@ -23,7 +23,7 @@ func main() {
 	fmt.Printf("Starting API (%s)\n", VERSION)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", aboutHandler)
+	r.PathPrefix("/api").HandlerFunc(aboutHandler)
 
 	http.ListenAndServe(":8080", r)
 }
