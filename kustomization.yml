@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ui/deployment.yaml
+  - db/deployment.yaml
+  - api/deployments/deployment.yaml
+configMapGenerator:
+  - name: env-config
+    envs:
+     - ./env.config

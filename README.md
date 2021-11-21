@@ -22,3 +22,12 @@ A skaffold configuration is set up to allow for local development.
 
 Routes will be enabled via the portforward at localhost:3000. Go to localhost:3000 or
 localhost:3000/api to see.
+
+## Configuration
+
+The following configuration variables must be set in a root level file called env.config using.
+`<parameter>=<value>` notation
+
+| Parameter | Description                                                      | Required |
+| --------- | ---------------------------------------------------------------- | -------- |
+| client_id | Client id of the Google API credential to use for the OAuth flow | Y        |
