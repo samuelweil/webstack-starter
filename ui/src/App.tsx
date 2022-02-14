@@ -1,4 +1,3 @@
-import "./App.css";
 import { useApi } from "./use-api";
 import { AuthProvider, GoogleLogin, useAuth } from "./auth";
 
