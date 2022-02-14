@@ -22,6 +22,7 @@ declare namespace Google.Id {
     initialize(idConfig: Config): void;
     prompt(listener?: (moment: PromptMoment) => void): void;
     renderButton(htmlEl: HTMLElement, config: GsiButtonConfiguration): void;
+    disableAutoSelect(): void;
   }
 }
 

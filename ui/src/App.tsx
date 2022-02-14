@@ -7,17 +7,26 @@ import { useAuth } from "./auth";
 
 function App() {
   const apiConfig = useApi();
-  const { setToken, isSignedIn } = useAuth();
+  const { setToken, isSignedIn, setSignoutCallback, signOut } = useAuth();
 
   if (!apiConfig) return <Loading />;
 
   if (!isSignedIn) {
     return (
-      <GoogleLogin clientId={apiConfig.clientId} tokenCallback={setToken} />
+      <GoogleLogin
+        clientId={apiConfig.clientId}
+        tokenCallback={setToken}
+        registerSignoutCallback={setSignoutCallback}
+      />
     );
   }
 
-  return <h1>Welcome!</h1>;
+  return (
+    <>
+      <h1>Welcome!</h1>
+      <button onClick={signOut}>Sign Out</button>
+    </>
+  );
 }
 
 export function Loading() {
@@ -27,13 +36,17 @@ export function Loading() {
 export function GoogleLogin(props: {
   clientId: string;
   tokenCallback: (token: string) => void;
+  registerSignoutCallback: (cb: () => void) => void;
 }) {
   const googleSdk = useGoogleIdSdk();
   const element = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     googleSdk?.initialize({
-      callback: ({ credential }) => props.tokenCallback(credential),
+      callback: ({ credential }) => {
+        props.tokenCallback(credential);
+        props.registerSignoutCallback(() => googleSdk.disableAutoSelect());
+      },
       client_id: props.clientId,
     });
   }, [googleSdk, props.tokenCallback, props.clientId]);
