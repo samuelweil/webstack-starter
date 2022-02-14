@@ -1,27 +1,32 @@
-import logo from "./logo.svg";
-import "./App.css";
 import { useApi } from "./use-api";
+import { AuthProvider, GoogleLogin, useAuth } from "./auth";
 
 function App() {
-
-  const info = useApi();
+  const apiConfig = useApi();
+  if (!apiConfig) return <Loading />;
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>{info ? info.version : "Loading"}</p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <Home clientId={apiConfig.clientId} />
+    </AuthProvider>
   );
+}
+
+function Home(props: { clientId: string }) {
+  const { isSignedIn, signOut } = useAuth();
+
+  return isSignedIn ? (
+    <>
+      <h1>Welcome!</h1>
+      <button onClick={signOut}>Sign Out</button>
+    </>
+  ) : (
+    <GoogleLogin clientId={props.clientId} />
+  );
+}
+
+function Loading() {
+  return <h1>Loading</h1>;
 }
 
 export default App;

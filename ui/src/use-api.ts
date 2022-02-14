@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-interface Info {
-  version: string;
+interface Config {
+  clientId: string;
 }
 
-export function useApi(): Info | null {
-  const [info, setInfo] = useState<Info | null>(null);
+export function useApi(): Config | undefined {
+  const [config, setConfig] = useState<Config>();
+
   useEffect(() => {
-    setTimeout(async () => {
-      const { data: info } = await axios.get<Info>("/api");
-      setInfo(info);
-    }, 2000);
+    loadConfig().then(setConfig);
   }, []);
 
-  return info;
+  return config;
+}
+
+export async function loadConfig(): Promise<Config> {
+  const { data: config } = await axios.get<Config>("/api/config");
+  return config;
 }

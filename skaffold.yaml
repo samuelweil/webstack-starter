@@ -13,11 +13,7 @@ build:
     docker:
       dockerfile: build/Dockerfile
 deploy:
-  kubectl:
-    manifests:
-    - ui/deployment.yaml
-    - db/deployment.yaml
-    - api/deployments/deployment.yaml
+  kustomize: {}
 portForward:
   - resourceType: service
     resourceName: ingress-nginx-controller
