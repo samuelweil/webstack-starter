@@ -1,6 +1,13 @@
 import { useCallback, useState } from "react";
 
-export function useAuth() {
+export interface AuthState {
+  isSignedIn: boolean;
+  setToken(token?: string): void;
+  signOut(): void;
+  setSignoutCallback(cb: () => void): void;
+}
+
+export function useAuthState(): AuthState {
   const [token, setToken] = useState<string>();
   const [signOutCallback, setSignoutCallback] = useState<() => void>();
 
