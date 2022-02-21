@@ -1,6 +1,9 @@
+import { useEffect } from "react";
+
+import { Container } from "@mui/material";
+
 import { useApi } from "./use-api";
 import { GoogleAuthProvider, useAuth } from "./auth";
-import { useEffect } from "react";
 import { MenuBar } from "./layout/MenuBar";
 
 function App() {
@@ -25,7 +28,9 @@ function Home() {
   return (
     <>
       <MenuBar />
-      <h1>{authState.isLoggedIn ? "Hello!" : "Please login"}</h1>
+      <Container>
+        <h1>{authState.isLoggedIn ? "Hello!" : "Please login"}</h1>
+      </Container>
     </>
   );
 }

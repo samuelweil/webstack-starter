@@ -1,6 +1,10 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
+
+import * as jose from "jose";
+
 import { AuthContext, AuthState } from "../auth-context";
-import { useGoogleIdSdk } from "./use-google-id-sdk";
+import { Google, useGoogleIdSdk } from "./use-google-id-sdk";
+import { User } from "../user";
 
 export function GoogleAuthProvider(props: {
   children: ReactNode;
@@ -28,7 +32,7 @@ export function GoogleAuthProvider(props: {
   });
 
   const authState: AuthState = token
-    ? { isLoggedIn: true, logout }
+    ? { isLoggedIn: true, user: parseUser(token), logout }
     : {
         isLoggedIn: false,
         login,
@@ -39,4 +43,13 @@ export function GoogleAuthProvider(props: {
       {props.children}
     </AuthContext.Provider>
   );
+}
+
+function parseUser(token: string): User {
+  const claims = jose.decodeJwt(token) as Google.Id.IdToken;
+  return {
+    name: claims.name,
+    email: claims.email,
+    picture: claims.picture,
+  };
 }

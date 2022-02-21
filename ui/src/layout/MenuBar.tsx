@@ -5,7 +5,8 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useAuth } from "../auth";
+import { useAuth, User } from "../auth";
+import { Avatar, Tooltip } from "@mui/material";
 
 export function MenuBar() {
   const auth = useAuth();
@@ -26,14 +27,25 @@ export function MenuBar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Workflow
           </Typography>
-          <Button
-            color="inherit"
-            onClick={() => (auth.isLoggedIn ? auth.logout() : auth.login())}
-          >
-            {auth.isLoggedIn ? "Logout" : "Login"}
-          </Button>
+          {auth.isLoggedIn ? (
+            <UserMenu user={auth.user} />
+          ) : (
+            <Button color="inherit" onClick={() => auth.login()}>
+              Login
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
     </Box>
+  );
+}
+
+function UserMenu(props: { user: User }) {
+  return (
+    <Tooltip title="Open settings">
+      <IconButton sx={{ p: 0 }}>
+        <Avatar alt="Remy Sharp" src={props.user.picture} />
+      </IconButton>
+    </Tooltip>
   );
 }

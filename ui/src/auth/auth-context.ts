@@ -1,8 +1,10 @@
 import React from "react";
+import { User } from "./user";
 
 interface LoggedInState {
   isLoggedIn: true;
   logout(): void;
+  user: User;
 }
 
 interface LoggedOutState {
