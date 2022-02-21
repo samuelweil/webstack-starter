@@ -1,3 +1,2 @@
-export { AuthProvider } from "./AuthProvider";
-export { GoogleLogin } from "./google";
+export { GoogleAuthProvider } from "./google";
 export { useAuth } from "./use-auth";

@@ -8,7 +8,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "../auth";
 
 export function MenuBar() {
-  const { isSignedIn } = useAuth();
+  const auth = useAuth();
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -26,7 +26,12 @@ export function MenuBar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Workflow
           </Typography>
-          <Button color="inherit">{isSignedIn ? "Logout" : "Login"}</Button>
+          <Button
+            color="inherit"
+            onClick={() => (auth.isLoggedIn ? auth.logout() : auth.login())}
+          >
+            {auth.isLoggedIn ? "Logout" : "Login"}
+          </Button>
         </Toolbar>
       </AppBar>
     </Box>
