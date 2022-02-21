@@ -1,6 +1,7 @@
 import { useApi } from "./use-api";
 import { AuthProvider, GoogleLogin, useAuth } from "./auth";
 import { useEffect } from "react";
+import { MenuBar } from "./layout/MenuBar";
 
 function App() {
   const apiConfig = useApi();
@@ -21,13 +22,18 @@ function App() {
 function Home(props: { clientId: string }) {
   const { isSignedIn, signOut } = useAuth();
 
-  return isSignedIn ? (
+  return (
     <>
-      <h1>Welcome!</h1>
-      <button onClick={signOut}>Sign Out</button>
+      <MenuBar />
+      {isSignedIn ? (
+        <>
+          <h1>Welcome!</h1>
+          <button onClick={signOut}>Sign Out</button>
+        </>
+      ) : (
+        <GoogleLogin clientId={props.clientId} />
+      )}
     </>
-  ) : (
-    <GoogleLogin clientId={props.clientId} />
   );
 }
 
