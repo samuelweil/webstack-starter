@@ -18,7 +18,7 @@ declare namespace Google.Id {
     type: "icon" | "standard";
   }
 
-  interface Sdk {
+  export interface Sdk {
     initialize(idConfig: Config): void;
     prompt(listener?: (moment: PromptMoment) => void): void;
     renderButton(htmlEl: HTMLElement, config: GsiButtonConfiguration): void;
@@ -40,7 +40,7 @@ export function useGoogleIdSdk(): Google.Id.Sdk | undefined {
     if (gSdk !== undefined) {
       setSdk(gSdk);
     }
-  }, [window.google]);
+  }, []);
 
   return sdk;
 }
