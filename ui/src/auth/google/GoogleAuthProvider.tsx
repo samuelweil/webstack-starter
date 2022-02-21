@@ -1,35 +1,47 @@
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 import * as jose from "jose";
 
 import { AuthContext, AuthState } from "../auth-context";
-import { Google, useGoogleIdSdk } from "./use-google-id-sdk";
+import { Google, useGoogleSdk } from "./use-google-sdk";
 import { User } from "../user";
+import { Backdrop, CircularProgress } from "@mui/material";
+
+export const GoogleContext = createContext<Google.Id.Sdk>(null!);
 
 export function GoogleAuthProvider(props: {
   children: ReactNode;
   clientId: string;
-}) {
-  const googleApi = useGoogleIdSdk();
+}): JSX.Element {
   const [token, setToken] = useState<string>();
+  const sdk = useGoogleSdk(props.clientId, ({ credential }) =>
+    setToken(credential)
+  );
 
   const logout = useCallback(() => {
-    googleApi?.disableAutoSelect();
+    sdk?.disableAutoSelect();
     setToken(undefined);
-  }, [googleApi]);
+  }, [sdk]);
 
   const login = useCallback(() => {
-    googleApi?.prompt();
-  }, [googleApi]);
+    sdk?.prompt(console.log);
+  }, [sdk]);
 
   useEffect(() => {
-    if (!googleApi) return;
+    if (!sdk) return;
 
-    googleApi.initialize({
+    sdk.initialize({
       callback: ({ credential }) => setToken(credential),
       client_id: props.clientId,
+      auto_select: true,
     });
-  });
+  }, [sdk, props.clientId]);
 
   const authState: AuthState = token
     ? { isLoggedIn: true, user: parseUser(token), logout }
@@ -38,10 +50,19 @@ export function GoogleAuthProvider(props: {
         login,
       };
 
-  return (
-    <AuthContext.Provider value={authState}>
-      {props.children}
-    </AuthContext.Provider>
+  return sdk ? (
+    <GoogleContext.Provider value={sdk}>
+      <AuthContext.Provider value={authState}>
+        {props.children}
+      </AuthContext.Provider>
+    </GoogleContext.Provider>
+  ) : (
+    <Backdrop
+      sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      open={true}
+    >
+      <CircularProgress color="inherit" />
+    </Backdrop>
   );
 }
 

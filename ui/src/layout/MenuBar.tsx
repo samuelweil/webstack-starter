@@ -2,11 +2,12 @@ import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth, User } from "../auth";
-import { Avatar, Tooltip } from "@mui/material";
+import { Avatar, Menu, MenuItem, Tooltip } from "@mui/material";
+import { useState } from "react";
+import { GoogleLoginButton } from "../auth/google";
 
 export function MenuBar() {
   const auth = useAuth();
@@ -28,11 +29,9 @@ export function MenuBar() {
             Workflow
           </Typography>
           {auth.isLoggedIn ? (
-            <UserMenu user={auth.user} />
+            <UserMenu user={auth.user} logOut={() => auth.logout()} />
           ) : (
-            <Button color="inherit" onClick={() => auth.login()}>
-              Login
-            </Button>
+            <GoogleLoginButton />
           )}
         </Toolbar>
       </AppBar>
@@ -40,12 +39,40 @@ export function MenuBar() {
   );
 }
 
-function UserMenu(props: { user: User }) {
+function UserMenu(props: { user: User; logOut: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [element, setElement] = useState<HTMLButtonElement | null>(null);
+
   return (
-    <Tooltip title="Open settings">
-      <IconButton sx={{ p: 0 }}>
-        <Avatar alt="Remy Sharp" src={props.user.picture} />
-      </IconButton>
-    </Tooltip>
+    <>
+      <Tooltip title="Open settings">
+        <IconButton
+          ref={setElement}
+          sx={{ p: 0 }}
+          onClick={() => setOpen((open) => !open)}
+        >
+          <Avatar alt="Remy Sharp" src={props.user.picture} />
+        </IconButton>
+      </Tooltip>
+      <Menu
+        anchorEl={element}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        sx={{ mt: "45px" }}
+        keepMounted
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        open={open}
+        onClose={() => setOpen((open) => !open)}
+      >
+        <MenuItem key="1" onClick={props.logOut}>
+          <Typography textAlign="center">Logout</Typography>
+        </MenuItem>
+      </Menu>
+    </>
   );
 }
