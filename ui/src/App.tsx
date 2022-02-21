@@ -1,8 +1,14 @@
 import { useApi } from "./use-api";
 import { AuthProvider, GoogleLogin, useAuth } from "./auth";
+import { useEffect } from "react";
 
 function App() {
   const apiConfig = useApi();
+
+  useEffect(() => {
+    if (apiConfig) console.log("Api loaded");
+  }, [apiConfig]);
+
   if (!apiConfig) return <Loading />;
 
   return (
