@@ -18,5 +18,5 @@ portForward:
   - resourceType: service
     resourceName: ingress-nginx-controller
     namespace: ingress-nginx
-    localPort: 3000
+    localPort: 4000
     port: 80

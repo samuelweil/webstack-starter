@@ -1,1 +1,2 @@
-export { GoogleLogin } from "./GoogleLogin";
+export { GoogleAuthProvider } from "./GoogleAuthProvider";
+export { GoogleLoginButton } from "./GoogleLoginButton";

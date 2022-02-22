@@ -1,27 +1,37 @@
+import { useEffect } from "react";
+
+import { Container } from "@mui/material";
+
 import { useApi } from "./use-api";
-import { AuthProvider, GoogleLogin, useAuth } from "./auth";
+import { GoogleAuthProvider, useAuth } from "./auth";
+import { MenuBar } from "./layout/MenuBar";
 
 function App() {
   const apiConfig = useApi();
+
+  useEffect(() => {
+    if (apiConfig) console.log("Api loaded");
+  }, [apiConfig]);
+
   if (!apiConfig) return <Loading />;
 
   return (
-    <AuthProvider>
-      <Home clientId={apiConfig.clientId} />
-    </AuthProvider>
+    <GoogleAuthProvider clientId={apiConfig.clientId}>
+      <Home />
+    </GoogleAuthProvider>
   );
 }
 
-function Home(props: { clientId: string }) {
-  const { isSignedIn, signOut } = useAuth();
+function Home() {
+  const authState = useAuth();
 
-  return isSignedIn ? (
+  return (
     <>
-      <h1>Welcome!</h1>
-      <button onClick={signOut}>Sign Out</button>
+      <MenuBar />
+      <Container>
+        <h1>{authState.isLoggedIn ? "Hello!" : "Please login"}</h1>
+      </Container>
     </>
-  ) : (
-    <GoogleLogin clientId={props.clientId} />
   );
 }
 
