@@ -1,6 +1,14 @@
-job:
-  image: gcr.io/k8s-skaffold/skaffold:latest
+image: gcr.io/k8s-skaffold/skaffold:latest
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+
+build:
   before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY_IMAGE --username $CI_REGISTRY_USER --password-stdin
   script:
-    - skaffold build --default-repo $CI_REGISTRY
+    - skaffold build --default-repo $CI_REGISTRY_IMAGE
