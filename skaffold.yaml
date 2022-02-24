@@ -3,6 +3,7 @@ kind: Config
 metadata:
   name: web-stack-starter
 build:
+  local: {}
   artifacts:
   - image: ui
     context: ui
