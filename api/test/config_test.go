@@ -23,7 +23,7 @@ func parse(resp *http.Response, into interface{}) error {
 }
 
 func TestConfig(t *testing.T) {
-	route := fmt.Sprintf("%s/api/config", SERVER)
+	route := fmt.Sprintf("%s/config", SERVER)
 
 	resp, err := http.Get(route)
 	if err != nil {

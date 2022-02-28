@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -31,7 +32,7 @@ func NewMiddleWare() mux.MiddlewareFunc {
 
 			keySet, err := autoRefreshKeys.Fetch(context.Background(), GOOGLE_KEY_URL)
 			if err != nil {
-				fmt.Printf("Error loading Google certs")
+				log.Printf("Error loading Google certs")
 				http.Error(w, "Unknown Server Error", http.StatusInternalServerError)
 				return
 			}
@@ -45,7 +46,7 @@ func NewMiddleWare() mux.MiddlewareFunc {
 			authContext := context.WithValue(r.Context(), authContextKey, token)
 			authenticatedRequest := r.WithContext(authContext)
 
-			fmt.Printf("%v\n", token)
+			log.Printf("%v\n", token)
 
 			h.ServeHTTP(w, authenticatedRequest)
 		})
