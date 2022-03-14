@@ -19,15 +19,15 @@ type contextKey int
 
 const authContextKey contextKey = 0
 
-type auth interface {
+type TokenVerifier interface {
 	verify(token string) (jwt.Token, error)
 }
 
-type remoteKeyAuth struct {
+type remoteKeyVerifier struct {
 	keyset *jwk.AutoRefresh
 }
 
-func (a remoteKeyAuth) verify(token string) (jwt.Token, error) {
+func (a remoteKeyVerifier) verify(token string) (jwt.Token, error) {
 	keySet, err := a.keyset.Fetch(context.Background(), GOOGLE_KEY_URL)
 	if err != nil {
 		return nil, err
@@ -36,11 +36,13 @@ func (a remoteKeyAuth) verify(token string) (jwt.Token, error) {
 	return jwt.Parse([]byte(token), jwt.WithKeySet(keySet))
 }
 
-func NewMiddleWare() mux.MiddlewareFunc {
-	authService := remoteKeyAuth{
-		keyset: googleKeySet(),
+func WithGoogle() TokenVerifier {
+	return remoteKeyVerifier{
+		keyset: remoteKeys(GOOGLE_KEY_URL),
 	}
+}
 
+func NewMiddleWare(v TokenVerifier) mux.MiddlewareFunc {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tokenStr, err := getBearerToken(r.Header.Get("Authorization"))
@@ -49,7 +51,7 @@ func NewMiddleWare() mux.MiddlewareFunc {
 				return
 			}
 
-			token, err := authService.verify(tokenStr)
+			token, err := v.verify(tokenStr)
 			if err != nil {
 				http.Error(w, "Unknown Server Error", http.StatusInternalServerError)
 				return
@@ -74,10 +76,6 @@ func GetAuthToken(r *http.Request) (jwt.Token, error) {
 
 	return tok, nil
 
-}
-
-func googleKeySet() *jwk.AutoRefresh {
-	return remoteKeys(GOOGLE_KEY_URL)
 }
 
 func remoteKeys(url string) *jwk.AutoRefresh {
