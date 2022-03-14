@@ -19,8 +19,27 @@ type contextKey int
 
 const authContextKey contextKey = 0
 
+type auth interface {
+	verify(token string) (jwt.Token, error)
+}
+
+type remoteKeyAuth struct {
+	keyset *jwk.AutoRefresh
+}
+
+func (a remoteKeyAuth) verify(token string) (jwt.Token, error) {
+	keySet, err := a.keyset.Fetch(context.Background(), GOOGLE_KEY_URL)
+	if err != nil {
+		return nil, err
+	}
+
+	return jwt.Parse([]byte(token), jwt.WithKeySet(keySet))
+}
+
 func NewMiddleWare() mux.MiddlewareFunc {
-	autoRefreshKeys := googleKeySet()
+	authService := remoteKeyAuth{
+		keyset: googleKeySet(),
+	}
 
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -30,16 +49,9 @@ func NewMiddleWare() mux.MiddlewareFunc {
 				return
 			}
 
-			keySet, err := autoRefreshKeys.Fetch(context.Background(), GOOGLE_KEY_URL)
+			token, err := authService.verify(tokenStr)
 			if err != nil {
-				log.Printf("Error loading Google certs")
 				http.Error(w, "Unknown Server Error", http.StatusInternalServerError)
-				return
-			}
-
-			token, err := jwt.Parse([]byte(tokenStr), jwt.WithKeySet(keySet))
-			if err != nil {
-				http.Error(w, "Invalid auth token", http.StatusUnauthorized)
 				return
 			}
 
@@ -65,11 +77,15 @@ func GetAuthToken(r *http.Request) (jwt.Token, error) {
 }
 
 func googleKeySet() *jwk.AutoRefresh {
+	return remoteKeys(GOOGLE_KEY_URL)
+}
+
+func remoteKeys(url string) *jwk.AutoRefresh {
 	ctx := context.Background()
 	keys := jwk.NewAutoRefresh(ctx)
-	keys.Configure(GOOGLE_KEY_URL, jwk.WithMinRefreshInterval(15*time.Minute))
+	keys.Configure(url, jwk.WithMinRefreshInterval(15*time.Minute))
 
-	_, err := keys.Refresh(ctx, GOOGLE_KEY_URL)
+	_, err := keys.Refresh(ctx, url)
 	if err != nil {
 		panic(err)
 	}
