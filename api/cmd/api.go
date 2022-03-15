@@ -47,7 +47,7 @@ func main() {
 	r.HandleFunc("/api/config", configHandler)
 
 	secureRouter := r.PathPrefix("/api/secure").Subrouter()
-	secureRouter.Use(auth.NewMiddleWare())
+	secureRouter.Use(auth.NewMiddleWare(auth.WithGoogle()))
 	secureRouter.HandleFunc("/{endpoint}", func(w http.ResponseWriter, r *http.Request) {
 
 		vars := mux.Vars(r)

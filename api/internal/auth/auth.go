@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 )
@@ -19,41 +21,59 @@ type contextKey int
 
 const authContextKey contextKey = 0
 
-type TokenVerifier interface {
-	verify(token string) (jwt.Token, error)
+type KeyStore interface {
+	key() (interface{}, error)
 }
 
-type remoteKeyVerifier struct {
+type remoteKeyStore struct {
 	keyset *jwk.AutoRefresh
 }
 
-func (a remoteKeyVerifier) verify(token string) (jwt.Token, error) {
-	keySet, err := a.keyset.Fetch(context.Background(), GOOGLE_KEY_URL)
-	if err != nil {
-		return nil, err
-	}
-
-	return jwt.Parse([]byte(token), jwt.WithKeySet(keySet))
+func (rks remoteKeyStore) key() (interface{}, error) {
+	return rks.keyset.Fetch(context.Background(), GOOGLE_KEY_URL)
 }
 
-func WithGoogle() TokenVerifier {
-	return remoteKeyVerifier{
+func WithGoogle() remoteKeyStore {
+	return remoteKeyStore{
 		keyset: remoteKeys(GOOGLE_KEY_URL),
 	}
 }
 
-func NewMiddleWare(v TokenVerifier) mux.MiddlewareFunc {
+type singleKeyStore struct {
+	storedKey jwk.RSAPublicKey
+}
+
+func WithKey(rsaKey *rsa.PublicKey) singleKeyStore {
+	key := jwk.NewRSAPublicKey()
+	err := key.FromRaw(rsaKey)
+	if err != nil {
+		panic(err)
+	}
+
+	return singleKeyStore{
+		key,
+	}
+}
+
+func (sks singleKeyStore) key() (interface{}, error) {
+	return sks.storedKey, nil
+}
+
+func NewMiddleWare(store KeyStore) mux.MiddlewareFunc {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tokenStr, err := getBearerToken(r.Header.Get("Authorization"))
+
+			pubKey, err := store.key()
 			if err != nil {
-				http.Error(w, "Invalid auth token", http.StatusUnauthorized)
+				log.Println(err)
+				http.Error(w, "Unknown Server Error", http.StatusInternalServerError)
 				return
 			}
 
-			token, err := v.verify(tokenStr)
+			token, err := jwt.ParseRequest(r, jwt.WithVerify(jwa.RS256, pubKey))
 			if err != nil {
-				http.Error(w, "Unknown Server Error", http.StatusInternalServerError)
+				log.Println(err)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
 
