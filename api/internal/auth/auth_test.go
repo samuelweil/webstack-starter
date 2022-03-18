@@ -10,54 +10,59 @@ import (
 	"time"
 	"weil/webstack/api/internal/auth"
 
+	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
-func makeTestRequest(v auth.KeyStore, token []byte) (*httptest.ResponseRecorder, error) {
-	mw := auth.NewMiddleWare(v)
+func makeTestRequest(token []byte) *http.Request {
 	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	if err != nil {
+		panic(err)
+	}
 	authHeader := fmt.Sprintf("Bearer %s", string(token))
 	req.Header.Add("Authorization", authHeader)
+	return req
+}
+
+func makeTestMW() (mux.MiddlewareFunc, *rsa.PrivateKey) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-
-	testHandler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-
-	resp := httptest.NewRecorder()
-	testHandler.ServeHTTP(resp, req)
-	return resp, nil
+	return auth.NewMiddleWare(auth.WithKey(&key.PublicKey)), key
 }
 
 func TestReturn401NoToken(t *testing.T) {
-	result, err := makeTestRequest(auth.WithGoogle(), []byte(""))
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	authMW, _ := makeTestMW()
+	testHandler := authMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	request := makeTestRequest([]byte(""))
 
-	status := result.Result().StatusCode
+	response := httptest.NewRecorder()
+	testHandler.ServeHTTP(response, request)
+	status := response.Result().StatusCode
 	if status != http.StatusUnauthorized {
 		t.Fatalf("expected 401 when there's no token, got %d", status)
 	}
 }
 
 func TestValidKey(t *testing.T) {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		panic(err)
-	}
+	authMW, privateKey := makeTestMW()
+	request := makeTestRequest(testToken(privateKey))
 
-	result, err := makeTestRequest(auth.WithKey(&key.PublicKey), testToken(key))
+	testHandler := authMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := auth.GetAuthToken(r)
+		if err != nil {
+			t.Errorf("Expected valid token to be found on request")
+		}
+	}))
 
-	if err != nil {
-		t.Fatalf("test request failed with %v", err)
-	}
-
-	status := result.Result().StatusCode
+	response := httptest.NewRecorder()
+	testHandler.ServeHTTP(response, request)
+	status := response.Result().StatusCode
 	if status != http.StatusOK {
 		t.Errorf("expected response OK, got %d", status)
 	}
