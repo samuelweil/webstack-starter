@@ -1,3 +1,7 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+
 variables:
   WORKDIR: "."
 
