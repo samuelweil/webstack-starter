@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"log"
 	"net/http"
 	"os"
-
-	"encoding/json"
+	"weil/webstack/api/internal/auth"
 
 	"github.com/gorilla/mux"
 )
@@ -30,13 +30,33 @@ var config Config = Config{
 	ClientID: os.Getenv("CLIENT_ID"),
 }
 
+func logMW(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.RequestURI)
+		h.ServeHTTP(w, r)
+	})
+}
+
 func main() {
-	fmt.Printf("Starting API (%s)\n", VERSION)
+	log.Printf("Starting API (%s)\n", VERSION)
 
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(aboutHandler)
-	api := r.PathPrefix("/api").Subrouter()
-	api.Path("/config").HandlerFunc(configHandler)
+	r.Use(logMW)
+
+	r.HandleFunc("/api/config", configHandler)
+
+	secureRouter := r.PathPrefix("/api/secure").Subrouter()
+	secureRouter.Use(auth.NewMiddleWare(auth.WithGoogle()))
+	secureRouter.HandleFunc("/{endpoint}", func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		endpoint := vars["endpoint"]
+
+		log.Printf("Logging from secure/%s\n", endpoint)
+
+		writeJSON("Hello secure", w)
+	})
 
 	http.ListenAndServe(":8080", r)
 }

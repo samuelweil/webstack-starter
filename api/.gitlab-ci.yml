@@ -1,0 +1,19 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+
+variables:
+  WORKDIR: "."
+
+unit tests:
+  stage: test
+  image: golang:1.17
+  before_script:
+    - cd $WORKDIR
+  script:
+    - go get gotest.tools/gotestsum
+    - gotestsum --junitfile report.xml --format testname ./internal/...
+  artifacts:
+    when: always
+    reports:
+      junit: $WORKDIR/report.xml

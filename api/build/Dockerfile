@@ -6,6 +6,7 @@ WORKDIR /build
 
 COPY go.* ./
 COPY cmd cmd
+COPY internal internal
 
 RUN go build cmd/*
 
