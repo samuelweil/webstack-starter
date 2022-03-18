@@ -23,6 +23,8 @@ test api:
     WORKDIR: api
 
 build:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY_IMAGE --username $CI_REGISTRY_USER --password-stdin
   script:
