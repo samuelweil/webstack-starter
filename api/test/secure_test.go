@@ -7,7 +7,7 @@ import (
 )
 
 var SECURE_ENDPOINTS = []string{
-	"secure/test",
+	"tasks",
 }
 
 func TestSecureEndpoints(t *testing.T) {
