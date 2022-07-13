@@ -12,4 +12,4 @@ clean:
 	rm $(key_file)
 
 integration-tests: $(key_file)
-	GOOGLE_APPLICATION_CREDENTIALS=$(key_file) go test ./test
+	GOOGLE_APPLICATION_CREDENTIALS=$(key_file) go test ./test -count=1

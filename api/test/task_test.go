@@ -19,7 +19,7 @@ func TestGetAllTasks(t *testing.T) {
 
 	c := tc.New()
 
-	resp, err := c.Get("/brands")
+	resp, err := c.Get("/tasks")
 	check(err)
 
 	if resp.StatusCode != http.StatusOK {
