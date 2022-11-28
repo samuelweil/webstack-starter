@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"weil/webstack/api/internal/auth"
+	"weil/webstack/api/internal/ctrl"
 	"weil/webstack/api/internal/task"
 
 	"github.com/gorilla/mux"
@@ -54,30 +54,20 @@ func main() {
 	taskService := task.NewService()
 	secureRouter.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
 		allTasks := taskService.AllTasks()
-		writeJSON(allTasks, w)
+		ctrl.WriteJSON(w, allTasks)
 	})
 
 	http.ListenAndServe(":8080", r)
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(aboutInfo, w)
+	ctrl.WriteJSON(w, aboutInfo)
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(config, w)
+	ctrl.WriteJSON(w, config)
 }
 
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-}
-
-func writeJSON(i interface{}, w http.ResponseWriter) error {
-	resultBytes, err := json.Marshal(i)
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(resultBytes)
-	return err
 }
