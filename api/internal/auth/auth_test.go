@@ -54,7 +54,7 @@ func TestValidKey(t *testing.T) {
 	request := makeTestRequest(testToken(privateKey))
 
 	testHandler := authMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := auth.GetAuthToken(r)
+		_, err := auth.AuthToken(r)
 		if err != nil {
 			t.Errorf("Expected valid token to be found on request")
 		}
