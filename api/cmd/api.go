@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"weil/webstack/api/internal/auth"
+	"weil/webstack/api/internal/ctrl"
 	"weil/webstack/api/internal/task"
 
 	"github.com/gorilla/mux"
@@ -42,11 +42,11 @@ func main() {
 	log.Printf("Starting API (%s)\n", VERSION)
 
 	r := mux.NewRouter()
-	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	r.NotFoundHandler = ctrl.ConstStatus(http.StatusNotFound)
 	r.Use(logMW)
 
-	r.HandleFunc("/api/config", configHandler)
-	r.HandleFunc("/api/about", aboutHandler)
+	r.HandleFunc("/api/config", ctrl.ConstResponse(config))
+	r.HandleFunc("/api/about", ctrl.ConstResponse(aboutInfo))
 
 	secureRouter := r.PathPrefix("/api").Subrouter()
 	secureRouter.Use(auth.NewMiddleWare(auth.WithGoogle()))
@@ -54,30 +54,8 @@ func main() {
 	taskService := task.NewService()
 	secureRouter.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
 		allTasks := taskService.AllTasks()
-		writeJSON(allTasks, w)
+		ctrl.WriteJSON(w, allTasks)
 	})
 
 	http.ListenAndServe(":8080", r)
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(aboutInfo, w)
-}
-
-func configHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(config, w)
-}
-
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-}
-
-func writeJSON(i interface{}, w http.ResponseWriter) error {
-	resultBytes, err := json.Marshal(i)
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(resultBytes)
-	return err
 }
