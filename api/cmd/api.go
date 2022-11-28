@@ -42,11 +42,11 @@ func main() {
 	log.Printf("Starting API (%s)\n", VERSION)
 
 	r := mux.NewRouter()
-	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	r.NotFoundHandler = ctrl.ConstStatus(http.StatusNotFound)
 	r.Use(logMW)
 
-	r.HandleFunc("/api/config", configHandler)
-	r.HandleFunc("/api/about", aboutHandler)
+	r.HandleFunc("/api/config", ctrl.ConstResponse(config))
+	r.HandleFunc("/api/about", ctrl.ConstResponse(aboutInfo))
 
 	secureRouter := r.PathPrefix("/api").Subrouter()
 	secureRouter.Use(auth.NewMiddleWare(auth.WithGoogle()))
@@ -58,16 +58,4 @@ func main() {
 	})
 
 	http.ListenAndServe(":8080", r)
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	ctrl.WriteJSON(w, aboutInfo)
-}
-
-func configHandler(w http.ResponseWriter, r *http.Request) {
-	ctrl.WriteJSON(w, config)
-}
-
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
 }
