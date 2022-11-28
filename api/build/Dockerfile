@@ -5,6 +5,8 @@ FROM ${base_img} as builder
 WORKDIR /build
 
 COPY go.* ./
+RUN go mod download
+
 COPY cmd cmd
 COPY internal internal
 
